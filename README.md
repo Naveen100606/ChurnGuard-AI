@@ -28,7 +28,7 @@ Streamlit Dashboard       (Executive Overview, Risk Explorer, Agent Sandbox)
 
 ---
 
-## 🚀 How to Run the Application
+##  How to Run the Application
 
 ### 1. Prerequisites & Environment Setup
 Ensure Python 3.10+ and PostgreSQL are installed. Create a `.env` file in the project root to configure your Gemini API Key:
@@ -67,7 +67,7 @@ python src/business/test_impact_simulator.py
 
 ---
 
-## 📊 Dataset & Temporal Feature Architecture
+## Dataset & Temporal Feature Architecture
 
 ### Synthetic Dataset & Rationale
 Many commonly used churn datasets are already aggregated at the customer level and do not provide the event-level temporal history needed for this project.
@@ -101,7 +101,7 @@ Many commonly used churn datasets are already aggregated at the customer level a
 
 ---
 
-## 🤖 Guardrail-Enforced AI Agent Architecture
+##  Guardrail-Enforced AI Agent Architecture
 
 The `RetentionAgent` (`src/agent/agent.py`) combines Google Gemini (`gemini-3.5-flash-lite` via `google-genai`) with 5 deterministic Python tools:
 
@@ -113,7 +113,7 @@ The `RetentionAgent` (`src/agent/agent.py`) combines Google Gemini (`gemini-3.5-
 
 ---
 
-## 📈 Portfolio Business Impact & ROI Simulation
+##  Portfolio Business Impact & ROI Simulation
 
 Across the 600 held-out test users:
 * **Targeted High-Risk Accounts ($P \ge 35\%$):** 84 accounts (14.0%)
@@ -125,7 +125,7 @@ Across the 600 held-out test users:
 
 ---
 
-## 🎯 Key Interview Talking Points
+##  Key Interview Talking Points
 
 1. **How Join Fan-Out Was Prevented:** Used 4 independent CTEs to aggregate sub-tables down to 1 row per user *before* joining back to `users`, guaranteeing $1 \text{ row} = 1 \text{ user}$.
 2. **How Data Leakage Was Prevented:** Strict SQL cutoff at `timestamp <= '2026-03-01 23:59:59'`. Preprocessing scalers and imputers fit strictly on `X_train` (2,400 users) and applied to `X_test` (600 users).
