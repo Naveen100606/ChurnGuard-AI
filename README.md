@@ -8,7 +8,7 @@ ChurnGuard AI is an end-to-end predictive customer retention engine designed to 
 
 ---
 
-## 🏛️ End-to-End System Architecture
+##  End-to-End System Architecture
 
 ```text
 PostgreSQL Feature Store  (Temporal Cutoff Days 1–60)
