@@ -1,144 +1,172 @@
-# ChurnGuard AI — Predictive Churn & Automated Retention Engine
+# ChurnGuard AI — Customer Churn Prediction & Retention Analytics
 
-## Objective
-ChurnGuard AI is an end-to-end predictive customer retention engine designed to bridge raw product analytics, machine learning, and automated business intervention. The primary goal of the system is to identify behavioral product churn early and trigger guardrail-constrained retention actions that protect customer lifetime value (LTV).
+An end-to-end machine learning project that analyzes historical retail transactions, predicts customer churn risk, and explores customer-retention campaign scenarios.
 
-> [!NOTE]
-> **Project Status (Complete - Days 1–6):** The full 6-day production-inspired pipeline is fully implemented, validated, and interactive via a 3-tab Streamlit Dashboard (`src/app.py`).
+## Project Overview
 
----
+Customer churn can reduce revenue and long-term customer value. ChurnGuard AI uses historical purchasing behavior to identify customers who may stop purchasing, helping businesses prioritize customers for retention analysis.
 
-##  End-to-End System Architecture
+The project combines SQL-based data analysis, Python feature engineering, machine learning, model interpretation, and an interactive Streamlit dashboard.
+
+## Objectives
+
+- Analyze historical customer purchasing behavior using SQL and Python.
+- Build customer-level behavioral features from transaction data.
+- Define churn using a future 90-day purchase inactivity window.
+- Train and evaluate a Random Forest classifier using chronological validation.
+- Rank customers by model-estimated churn risk.
+- Explore hypothetical retention campaign costs and value.
+
+## Dataset
+
+**Dataset:** Online Retail II transaction data  
+**Period:** December 2009 – December 2011
+
+The dataset contains historical retail transactions, including invoice details, product quantities, prices, dates, and customer identifiers.
+
+Data preparation excludes transactions that do not qualify as purchases, including cancellations, non-positive quantities or prices, and records without customer identifiers.
+
+The data represents historical UK online retail transactions, not modern Indian retail data.
+
+## Tech Stack
+
+- **SQL:** MySQL
+- **Programming:** Python
+- **Data analysis:** Pandas, NumPy
+- **Machine learning:** Scikit-learn, Random Forest
+- **Model interpretation:** SHAP
+- **Visualization and dashboard:** Streamlit, Matplotlib
+- **Model persistence:** Joblib
+- **Development:** Jupyter Notebook, Git, GitHub
+
+## Methodology
+
+### 1. Data Cleaning and SQL Analysis
+
+- Audited missing values, duplicate transactions, cancellations, and invalid quantities and prices.
+- Created an invoice-level dataset using MySQL.
+- Analyzed revenue trends, order volumes, and customer purchasing behavior.
+- Built customer-level features for churn prediction.
+
+### 2. Feature Engineering
+
+The model uses four behavioral features calculated from a historical 90-day observation window:
+
+| Feature | Description |
+|---|---|
+| `orders_90d` | Number of orders |
+| `spend_90d` | Total customer spending |
+| `quantity_90d` | Total quantity purchased |
+| `recency_days` | Days since the most recent purchase at the cutoff |
+
+### 3. Churn Definition
+
+A customer is labelled as churned when they make no qualifying purchase during the following 90-day label window.
+
+- `1` — No qualifying purchase during the label window.
+- `0` — At least one qualifying purchase during the label window.
+
+This is an operational definition for the project and does not prove that a customer has permanently left a business.
+
+### 4. Machine Learning
+
+A Random Forest classifier was trained on historical customer snapshots.
+
+Chronological validation was used to select a classification threshold on a validation period and evaluate the final model on a later historical test snapshot.
+
+The selected threshold was **0.50**.
+
+### 5. Model Evaluation
+
+Final chronological test results at threshold 0.50:
+
+| Metric | Result |
+|---|---:|
+| Accuracy | 59.1% |
+| Precision | 42.4% |
+| Recall | 79.1% |
+| F1-score | 0.552 |
+| ROC-AUC | 0.704 |
+
+The model identified 485 of 613 actual churners in the test snapshot, while incorrectly flagging 658 customers who did not churn.
+
+The model prioritizes detecting churners, at the cost of generating false positives. Accuracy alone is therefore insufficient to assess its usefulness.
+
+### 6. Interactive Dashboard
+
+The Streamlit dashboard provides:
+
+- Customer churn-risk scores.
+- Adjustable risk threshold.
+- Customer risk ranking.
+- Risk distribution visualization.
+- CSV download of flagged customers.
+- Hypothetical campaign cost and net-value calculations.
+
+Campaign outcomes depend on user-entered assumptions. The dashboard does not demonstrate that a real retention offer would prevent churn.
+
+## Project Structure
 
 ```text
-PostgreSQL Feature Store  (Temporal Cutoff Days 1–60)
-        ↓
-XGBoost Churn Prediction  (ROC-AUC 0.9162 on 600 Test Users)
-        ↓
-SHAP Explainability       (TreeExplainer Margin Space & Local Risk Profiles)
-        ↓
-Gemini Retention Agent    (Real LLM Tool Calling via google-genai)
-        ↓
-Python Business Rules     (Hard Policy Caps: Basic ≤10%, Pro ≤15%, Enterprise ≤20%)
-        ↓
-ROI & Impact Simulator   (Expected Value Saved & Net Financial Impact $)
-        ↓
-Streamlit Dashboard       (Executive Overview, Risk Explorer, Agent Sandbox)
+churnguard-ai/
+├── data/
+│   └── processed/
+│       └── churn_training_data.csv
+├── models/
+│   └── churn_random_forest.joblib
+├── notebooks/
+│   └── 03_chronological_validation.ipynb
+├── app.py/
+│   └── app.py
+├── README.md
+└── requirements.txt
 ```
 
----
+Adjust the notebook path above if your actual folder structure differs.
 
-##  How to Run the Application
+## Run the Dashboard Locally
 
-### 1. Prerequisites & Environment Setup
-Ensure Python 3.10+ and PostgreSQL are installed. Create a `.env` file in the project root to configure your Gemini API Key:
+### 1. Clone the repository
 
 ```bash
-# .env (Ignored by Git)
-GEMINI_API_KEY=your_google_gemini_api_key_here
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd churnguard-ai
 ```
 
-### 2. Run the Streamlit Dashboard
-Launch the interactive 3-tab Streamlit dashboard:
+### 2. Install dependencies
 
 ```bash
-streamlit run src/app.py
+python -m pip install -r requirements.txt
 ```
 
-### 3. Execute Verification Audit Suites
-To run the automated validation test suites across all pipeline stages:
+### 3. Launch Streamlit
+
+If the application remains inside the nested `app.py` folder:
 
 ```bash
-# Day 1: Feature Store & Fan-out Validation Audit
-python src/data/validate_feature_store.py
-
-# Day 2: ML Pipeline & Data Leakage Audit
-python src/models/verify_day2_eval.py
-
-# Day 3: SHAP Margin Space & Sign Audit
-python src/explainability/verify_day3_global.py
-
-# Day 4: Agent Architecture & Security Audit
-python src/agent/verify_day4_agent.py
-
-# Day 5: Portfolio Business Impact Simulator Test
-python src/business/test_impact_simulator.py
+python -m streamlit run app.py/app.py
 ```
 
----
+If you move the application to the project root, use:
 
-## Dataset & Temporal Feature Architecture
-
-### Synthetic Dataset & Rationale
-Many commonly used churn datasets are already aggregated at the customer level and do not provide the event-level temporal history needed for this project.
-* A realistic synthetic event stream was generated spanning **90 days** across **3,000 users**.
-* User activity incorporates 3 latent probabilistic cohorts (*Engaged*, *Gradual Decline*, and *Friction/Support Drop-off*).
-
-### Relational Schema (PostgreSQL)
-1. `users` (3,000 rows): `user_id`, `signup_date`, `plan_tier`, `monthly_fee` ($29, $99, $299)
-2. `sessions` (147,733 rows): `session_id`, `user_id`, `session_start`, `session_end`, `device_type`
-3. `events` (664,819 rows): `event_id`, `session_id`, `user_id`, `event_timestamp`, `event_name`
-4. `orders` (1,667 rows): `order_id`, `user_id`, `order_timestamp`, `amount`
-5. `support_tickets` (1,015 rows): `ticket_id`, `user_id`, `created_at`, `category`, `status`
-
-### Temporal Isolation & Leakage Prevention
-```text
-       Observation Window (Days 1 to 60)         Future Label Window (Days 61 to 90)
- ┌───────────────────────────────────────────────┬───────────────────────────────┐
- │  Jan 1, 2026 00:00:00 to March 1, 2026 23:59 │ March 2, 2026 to March 31, 2026│
- │                                               │                               │
- │  SQL extracts ALL features strictly from      │  Target label evaluated HERE: │
- │  events occurring within this 60-day window. │  Has user logged any sessions │
- │                                               │  or orders in this 30-day     │
- │                                               │  future window?               │
- │                                               │   NO  ==> churn_label = 1     │
- │                                               │   YES ==> churn_label = 0     │
- └───────────────────────────────────────────────┴───────────────────────────────┘
-                                                 ▲
-                                          PREDICTION POINT
-                                      (March 1, 2026 23:59:59)
+```bash
+python -m streamlit run app.py
 ```
 
----
+Ensure the processed dataset and saved model are available at the paths expected by the application.
 
-##  Guardrail-Enforced AI Agent Architecture
+## Limitations and Future Improvements
 
-The `RetentionAgent` (`src/agent/agent.py`) combines Google Gemini (`gemini-3.5-flash-lite` via `google-genai`) with 5 deterministic Python tools:
+- Evaluate the model across additional chronological test periods.
+- Test whether repeated customer appearances across snapshots affect evaluation.
+- Improve precision and investigate false-positive costs.
+- Evaluate probability calibration and threshold selection against business costs.
+- Compare Random Forest against Logistic Regression and XGBoost using a consistent validation strategy.
+- Test retention campaigns through controlled experiments before estimating actual causal impact.
+- Add model monitoring and a reproducible data-processing pipeline.
 
-1. `calculate_ltv()`: Computes annual customer LTV ($\text{monthly\_fee} \times 12$).
-2. `check_retention_rules()`: Enforces hard business policy caps (Basic $\le 10\%$, Pro $\le 15\%$, Enterprise $\le 20\%$) and risk threshold ($P \ge 35\%$).
-3. `calculate_intervention_roi()`: Calculates financial expected value saved, intervention costs, and net ROI $\%$.
-4. `generate_retention_message()`: Constructs targeted copy based on SHAP risk vector.
-5. `log_retention_action()`: Records execution status in `data/retention_action_logs.csv`.
+## Conclusion
 
----
+ChurnGuard AI demonstrates an end-to-end workflow for customer churn analytics, from transaction cleaning and SQL analysis to machine learning evaluation and an interactive retention dashboard.
 
-##  Portfolio Business Impact & ROI Simulation
-
-Across the 600 held-out test users:
-* **Targeted High-Risk Accounts ($P \ge 35\%$):** 84 accounts (14.0%)
-* **Total LTV Targeted:** $86,832.00
-* **Expected Value Saved (30% retention rate assumption):** $26,049.60
-* **Total Intervention Cost:** $14,137.20
-* **Net Financial Impact:** **+$11,912.40**
-* **Retention Program Overall ROI:** **84.26%**
-
----
-
-##  Key Interview Talking Points
-
-1. **How Join Fan-Out Was Prevented:** Used 4 independent CTEs to aggregate sub-tables down to 1 row per user *before* joining back to `users`, guaranteeing $1 \text{ row} = 1 \text{ user}$.
-2. **How Data Leakage Was Prevented:** Strict SQL cutoff at `timestamp <= '2026-03-01 23:59:59'`. Preprocessing scalers and imputers fit strictly on `X_train` (2,400 users) and applied to `X_test` (600 users).
-3. **Why Business Rules are Deterministic:** LLMs are non-deterministic text generators. By placing policy caps in Python tools, the LLM can recommend actions, but Python tools act as an unbypassable policy firewall.
-4. **SHAP TreeExplainer Margin Space:** SHAP values explain XGBoost outputs in raw log-odds margin space. Base value $-2.0542$ corresponds to $11.36\%$ baseline dataset churn probability.
-
----
-
-## Project Roadmap
-
-* [x] **Day 1:** Data Architecture, Synthetic Event Stream, PostgreSQL Schema & Feature Store.
-* [x] **Day 2:** ML Classification Pipeline (Logistic Regression Baseline vs. XGBoost Classifier & Metrics).
-* [x] **Day 3:** SHAP Explainability Engine (Global Feature Importance + Per-User Local Drivers).
-* [x] **Day 4:** Guardrail-Enforced AI Retention Agent (LLM Function Calling & Python Logic Tools).
-* [x] **Day 5:** ROI / LTV Financial Simulator & Execution Action Logging.
-* [x] **Day 6:** 3-Tab Streamlit Dashboard & Interview Defense Setup.
+The project emphasizes chronological evaluation and interpretable business trade-offs rather than relying on accuracy alone.
