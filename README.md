@@ -129,7 +129,7 @@ Adjust the notebook path above if your actual folder structure differs.
 ### 1. Clone the repository
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
+git clone <https://github.com/Naveen100606/ChurnGuard-AI>
 cd churnguard-ai
 ```
 
