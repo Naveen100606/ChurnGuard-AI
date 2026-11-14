@@ -2,8 +2,6 @@
 
 An end-to-end machine learning project that analyzes historical retail transactions, predicts customer churn risk, and explores customer-retention campaign scenarios.
 
-> Forked from [jay-git00/ChurnGuard-AI](https://github.com/jay-git00/ChurnGuard-AI).
-> **My contributions:** [FILL IN: describe what you built, changed or extended yourself]
 
 ## Project Overview
 
